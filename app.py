@@ -1,38 +1,64 @@
 import streamlit as st
 import pickle
+import numpy as np
 
 # Load model
 with open("logistic_model.pkl", "rb") as f:
     model = pickle.load(f)
 
-st.set_page_config(page_title="Diabetes Progression Prediction")
+# Load scaler
+with open("scaler.pkl", "rb") as f:
+    scaler = pickle.load(f)
 
-st.title("🩺 Diabetes Progression Prediction")
+st.set_page_config(page_title="Diabetes Prediction")
 
-st.write(
-    "Predict the diabetes disease progression score based on patient features."
+st.title("🩺 Diabetes Prediction using Logistic Regression")
+
+st.write("Enter the patient's medical information.")
+
+pregnancies = st.number_input("Pregnancies", min_value=0, value=2)
+
+glucose = st.number_input("Glucose", min_value=0, value=120)
+
+blood_pressure = st.number_input("Blood Pressure (mm Hg)", min_value=0, value=70)
+
+skin_thickness = st.number_input("Skin Thickness (mm)", min_value=0, value=30)
+
+insulin = st.number_input("Insulin", min_value=0, value=85)
+
+bmi = st.number_input("BMI", min_value=0.0, value=32.5)
+
+dpf = st.number_input(
+    "Diabetes Pedigree Function",
+    min_value=0.0,
+    value=0.45,
+    format="%.2f"
 )
 
-st.sidebar.header("Enter Patient Details")
-
-age = st.sidebar.slider("Age", -0.2, 0.2, 0.0)
-sex = st.sidebar.slider("Sex", -0.2, 0.2, 0.0)
-bmi = st.sidebar.slider("BMI", -0.2, 0.2, 0.0)
-bp = st.sidebar.slider("Blood Pressure", -0.2, 0.2, 0.0)
-s1 = st.sidebar.slider("S1", -0.2, 0.2, 0.0)
-s2 = st.sidebar.slider("S2", -0.2, 0.2, 0.0)
-s3 = st.sidebar.slider("S3", -0.2, 0.2, 0.0)
-s4 = st.sidebar.slider("S4", -0.2, 0.2, 0.0)
-s5 = st.sidebar.slider("S5", -0.2, 0.2, 0.0)
-s6 = st.sidebar.slider("S6", -0.2, 0.2, 0.0)
+age = st.number_input("Age", min_value=1, value=28)
 
 if st.button("Predict"):
 
-    prediction = model.predict([[
-        age, sex, bmi, bp,
-        s1, s2, s3, s4, s5, s6
+    features = np.array([[
+        pregnancies,
+        glucose,
+        blood_pressure,
+        skin_thickness,
+        insulin,
+        bmi,
+        dpf,
+        age
     ]])
 
-    st.success(
-        f"Predicted Disease Progression Score: {prediction[0]:.2f}"
-    )
+    features_scaled = scaler.transform(features)
+
+    prediction = model.predict(features_scaled)
+
+    probability = model.predict_proba(features_scaled)
+
+    if prediction[0] == 1:
+        st.error("⚠️ Diabetic")
+    else:
+        st.success("✅ Not Diabetic")
+
+    st.write(f"Probability of Diabetes: **{probability[0][1]*100:.2f}%**")
