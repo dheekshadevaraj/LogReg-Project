@@ -2,7 +2,7 @@ import streamlit as st
 import pickle
 
 # Load model
-with open("diabetes_model.pkl", "rb") as f:
+with open("logistic_model.pkl", "rb") as f:
     model = pickle.load(f)
 
 st.set_page_config(page_title="Diabetes Progression Prediction")
